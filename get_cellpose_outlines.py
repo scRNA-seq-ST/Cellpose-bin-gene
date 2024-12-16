@@ -6,9 +6,9 @@ import os
 import cv2
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--path', type=str, default=r'D:\self_file\Large Image 2-st-11-24-3-14-2notd_RGB_DiI.tif', help='Merge file with fluo and scale')
-parser.add_argument('--divide_y', type=int, default=8, help='Merge file with fluo and scale')
-parser.add_argument('--divide_x', type=int, default=8, help='Merge file with fluo and scale')
+parser.add_argument('--path', type=str, default=r'/icto/user/yc47621/data-home/cellpose_image/cut_10000H25000_6000W24000_td.png', help='Merge file with fluo and scale')
+parser.add_argument('--divide_y', type=int, default=1, help='Merge file with fluo and scale')
+parser.add_argument('--divide_x', type=int, default=1, help='Merge file with fluo and scale')
 parser.add_argument('--save_flod',type=str, default=r'data',help='path for save.')
 
 args = parser.parse_args()
@@ -38,7 +38,7 @@ class Get_cellpose_mask():
         return cut_list_points
 
     def cellpose_cut(self, img_part):
-        model = models.Cellpose(gpu=True, model_type='cyto')
+        model = models.Cellpose(gpu=False, model_type='cyto2',diams=50)
         masks, flows, styles, diams = model.eval(img_part, diameter=None, channels=[0, 1, 2])
         return masks
 
@@ -48,6 +48,7 @@ class Get_cellpose_mask():
         for line in self.cut_list_points:
             [a, b, c, d] = line
             img_part = self.img[a:c, b:d]
+            print("patch from y:(%d，%d), x:(%d,%d) is begin with %d cells "%(a, c, b, d, num))
             masks = self.cellpose_cut(img_part)
             # merge_mask(patch1, patch2)
             masks[masks != 0] = masks[masks != 0] + num
@@ -81,5 +82,5 @@ if __name__ == '__main__':
     CELL_MASK = Get_cellpose_mask(fluo_ori,D_Y,D_X)
     cell_masks = CELL_MASK.masks
     
-    save_path = os.path.join(SAVE_FLOD,"cellpose_masks.txt")
+    save_path = os.path.join(SAVE_FLOD,"cellpose_masks_td.txt")
     np.savetxt(save_path, cell_masks, delimiter=',')
